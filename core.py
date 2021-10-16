@@ -16,27 +16,6 @@ class Traitement:
         '''
         self.photos = req.get_produits()
         
-        elements =[
-                    {
-                    "title":list(self.photos[0])[0],
-                    "image_url":list(self.photos[0])[2],
-                    "subtitle":str(list(self.photos[0])[1]) + "Ar",
-                    "buttons":[
-                        {
-                            "type":"web_url",
-                            "url":"https://www.iteam-s.mg",
-                            "title":"View Website"
-                        },
-                        {
-                            "type":"postback",
-                            "title":"commander",
-                            "payload":"__commande"
-                        }  
-                    ]      
-                }
-            ] 
-
-        return elements
 
     def _analyse(self, data):           
         '''
