@@ -16,9 +16,7 @@ def webhook():
     elif request.method == "POST":
         #recuperation de json via facebook
         body = request.get_json()
-        # print(body)
         traitement._analyse(body)
-
     return "receive", 200
         
 if __name__ == "__main__":           

@@ -1,23 +1,44 @@
 import messenger
 from conf import ACCESS_TOKEN
+import requete
 
 bot = messenger.Messenger(ACCESS_TOKEN)
-
+req = requete.Requete()
 
 class Traitement: 
     def __init__(self):
         pass 
+   
+    def elements_produits(self):  
+        '''
+            Fonction qui fetch des données de chaques 
+            produits dans la base de données
+        '''
+        self.photos = req.get_produits()
+        
+        elements =[
+                    {
+                    "title":list(self.photos[0])[0],
+                    "image_url":list(self.photos[0])[2],
+                    "subtitle":str(list(self.photos[0])[1]) + "Ar",
+                    "buttons":[
+                        {
+                            "type":"web_url",
+                            "url":"https://www.iteam-s.mg",
+                            "title":"View Website"
+                        },
+                        {
+                            "type":"postback",
+                            "title":"commander",
+                            "payload":"__commande"
+                        }  
+                    ]      
+                }
+            ] 
 
+        return elements
 
-    def message(self,text):
-        a = text.lower()
-        if a == "salut":
-            b = "Hello word!"
-        else:
-            b = "BOt message"
-        return b
-    
-    def _analyse(self, data):
+    def _analyse(self, data):           
         '''
             Fonction analysant les données reçu de Facebook
             Donnée de type Dictionnaire attendu (JSON parsé)
@@ -37,6 +58,17 @@ class Traitement:
                             message['message']['quick_reply'].get('payload')
                         )
 
+                        reponse_quick_reply = message['message']['quick_reply'].get('payload')
+                        if reponse_quick_reply == "__louer_terrain": 
+                            produitDispo = "Voici donc les differents terrains disponibles"
+                            bot.send_message(sender_id,produitDispo)
+                            bot.send_template(sender_id)
+                            
+                        elif reponse_quick_reply == "__information":
+                            pageInfo = "Les informations concernants notre page arrivent bientôt ici"
+                            bot.send_message(sender_id,pageInfo)
+                            
+
                     elif message['message'].get('text'):
                         # cas d'une reponse par text simple.
                         self.__execution(
@@ -44,53 +76,24 @@ class Traitement:
                             message['message'].get('text')
                         )
                         
-                        texte = message['message'].get('text')
-                        print(texte)
-                        reponse = self.message(texte)   
-                        print(reponse)
-                        bot.send_message(sender_id,reponse)
-                        
-        
+                        information = "Bonjour, Nous sommes une petite entreprise qui fait une location des"
+                        information2 = "terrains scientitiques ici Antananarivo"
+                        info = information + " " + information2
+                        bot.send_message(sender_id,info)
+                        bot.send_quick_reply(sender_id) 
 
 
     def __execution(self, user_id, commande):
-        '''
-            Fonction privée qui traite les differentes commandes réçu
-        '''
-        # Mettre en VUE le message qui est en cours de traitement
+        """
+            Fonction privée qui traite les differentes commandes réçu   
+        """
+        #Mettre en vue les messages reçus
         bot.send_action(user_id, 'mark_seen')
 
-        # # recuperer l'action de l'utilisateur.
-        # statut = req.get_action(user_id)
+    
 
-        # # recuperation des infos de l'utilisateur
-        # user_info = req.get_user_info(user_id)
+        
 
-        '''
-            Pour ces différents traitement, si un condition est
-            remplit, ne plus continuer les autres.
-            les differentes fonction retourne 'True' si un
-            option a été traité d'où l'arret des autres trts.
-        '''
-        # # traitement par action courrant
-        # if self.trt_statut(statut, user_id, user_info, commande):
-        #     return
-
-        # # traitement par commande
-        # if self.trt_commande(commande, user_id, user_info):
-        #     return
-
-        # # autre traitement
-        # if self.trt_divers(user_id, user_info):
-        #     return
-
-        # # Pour plus de securité si aucun option sa été selectionner
-        # # on nettoye les valeurs de temp et action
-        # req.set_action(user_id, None)
-        # req.set_temp(user_id, None)
-
-        # # Envoie du choix de l'options Menu
-        # bot.send_quick_reply(user_id, user_info['lang'], SHOW_MENU=True)
 
 
 
