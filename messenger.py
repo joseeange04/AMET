@@ -1,3 +1,4 @@
+
 import requests
 from utils import translate
 from erreur import TestUserRequests
@@ -105,13 +106,12 @@ class Messenger:
         )
 
 
-    def send_template(self, destId):
+    def send_template(self, destId, produits):
         '''
             Envoi des produits sous forme templates
 
         '''
         self.send_action(destId, 'typing_on')
-
         dataJSON = {
             'messaging_type': "RESPONSE",
             'recipient': {
@@ -122,42 +122,7 @@ class Messenger:
                     "type": "template",
                     "payload": {
                         "template_type": "generic",
-                        "elements": 
-                            [
-                                {
-                                "title":"Terrain Talatamaty",
-                                "image_url":"https://i0.wp.com/www.agencemalagasydepresse.com/wp-content/uploads/2019/11/terrain-synthetique-andohalo.jpg?w=960&ssl=1",
-                                "subtitle":"Prix: 20€/heure",
-                                "buttons":[
-                                    {
-                                        "type":"postback",
-                                        "title":"Voir Gallery",
-                                        "payload":"__gallerry"
-                                    },{
-                                        "type":"postback",
-                                        "title":"Commander",
-                                        "payload":"__commande"
-                                    }  
-                                ]      
-                            },
-                            #deuxieme template  
-                            {
-                                "title":"Terrain Andohalo",
-                                "image_url":"https://i0.wp.com/www.agencemalagasydepresse.com/wp-content/uploads/2019/11/terrain-synthetique-andohalo.jpg?w=960&ssl=1",
-                                "subtitle":"Prix: 20€/heure",
-                                "buttons":[
-                                    {
-                                        "type":"postback",
-                                        "title":"Voir Gallery",
-                                        "payload":"__gallerry"
-                                    },{
-                                        "type":"postback",
-                                        "title":"Commander",
-                                        "payload":"__commande"
-                                    }  
-                                ]           
-                            },
-                        ]
+                        "elements": produits , 
                     },
                 },
             }

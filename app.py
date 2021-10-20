@@ -1,4 +1,4 @@
-from flask import Flask , request
+from flask import Flask , request, send_from_directory
 from conf import VERIFY_TOKEN
 import core 
 import messenger
@@ -18,6 +18,17 @@ def webhook():
         body = request.get_json()
         traitement._analyse(body)
     return "receive", 200
+
+@app.route("/<filename>")
+def get_file(filename):
+    try:
+        return send_from_directory(
+                    './photo/',
+                    path=filename,
+                    as_attachment=True
+                )
+    except FileNotFoundError:
+        abort(404)
         
 if __name__ == "__main__":           
     app.run(port=7000)
