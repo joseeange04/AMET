@@ -141,9 +141,6 @@ class Messenger:
         '''
             Envoyé piece jointe par lien.
         '''
-        if destId == 'test_user':
-            return
-
         dataJSON = {
             'messaging_type': "RESPONSE",
             'recipient': {
