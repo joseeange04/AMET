@@ -106,7 +106,7 @@ class Messenger:
         )
 
 
-    def send_template(self, destId, produits):
+    def send_template(self, destId, elements):
         '''
             Envoi des produits sous forme templates
 
@@ -122,7 +122,7 @@ class Messenger:
                     "type": "template",
                     "payload": {
                         "template_type": "generic",
-                        "elements": produits , 
+                        "elements": elements , 
                     },
                 },
             }
@@ -137,7 +137,35 @@ class Messenger:
             headers=header, params=params
         )
 
-            
+    def send_file_url(self, destId, url, filetype='file'):
+        '''
+            Envoyé piece jointe par lien.
+        '''
+        if destId == 'test_user':
+            return
 
+        dataJSON = {
+            'messaging_type': "RESPONSE",
+            'recipient': {
+                "id": destId
+            },
+            'message': {
+                'attachment': {
+                    'type': filetype,
+                    'payload': {
+                        "url": url,
+                        "is_reusable": True
+                    }
+                }
+            }
+        }
+        header = {'content-type': 'application/json; charset=utf-8'}
+        params = {"access_token": self.token}
+        return requests.post(
+            self.url + '/messages',
+            json=dataJSON,
+            headers=header,
+            params=params
+        )
             
     

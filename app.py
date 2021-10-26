@@ -12,10 +12,9 @@ def webhook():
         if request.args.get("hub.verify_token") == VERIFY_TOKEN:
             return request.args.get("hub.challenge")
         return "Invalid verification token"
-        
     elif request.method == "POST":
         #recuperation de json via facebook
-        body = request.get_json()
+        body = request.get_json()  
         traitement._analyse(body)
     return "receive", 200
 

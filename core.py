@@ -26,11 +26,11 @@ class Traitement:
                     {
                         "type":"postback",
                         "title":"Voir Gallery",
-                        "payload":"__GALlERY"
+                        "payload": "__GALERY" + " " + str(self.photos[i][0])  
                     },{
                         "type":"postback",
                         "title":"Details",
-                        "payload":"__DETAILS"
+                        "payload":"__DETAILS" + " " + str(self.photos[i][0])
                     },
                     {
                         "type":"postback",
@@ -42,9 +42,34 @@ class Traitement:
             i = i + 1
 
         return produits
-            
 
-   
+
+    def gallery(self,id_prod):
+        self.all_gallerry = req.get_gallerry(id_prod)
+
+        listeGallery = []
+        j = 0
+        while j < len(self.all_gallerry):
+            listeGallery.append({
+                "title":"image 😊😊😊",
+                "image_url":"https://amet.iteam-s.xyz/" + self.all_gallerry[j][0],
+                "buttons":[ 
+                    {
+                        "type":"postback",
+                        "title":"voir image",
+                        "payload": "__voirimage" + " " +  "https://amet.iteam-s.xyz/" + self.all_gallerry[j][0]
+                    } 
+                ]           
+            })
+            j = j + 1
+
+        return listeGallery
+    
+    def details(self,id_prod):
+        self.photoDetails = req.get_detail(id_prod)
+        urlDetails = "https://amet.iteam-s.xyz/" + self.photoDetails[0][0]
+        return urlDetails   
+
 
 
 #--------------------------------------------FIN OPTIONS------------------------------------------------------------------#
@@ -54,7 +79,6 @@ class Traitement:
             Fonction analysant les données reçu de Facebook
             Donnée de type Dictionnaire attendu (JSON parsé)
         '''
-        # print(data)
         for event in data['entry']:
             messaging = event['messaging']
             for message in messaging:
@@ -77,12 +101,10 @@ class Traitement:
                             message['message'].get('text')
                         )
                         
-                        information = "Bonjour, Nous sommes une petite entreprise qui fait une location des"
-                        information2 = "terrains scientitiques ici Antananarivo"
-                        info = information + " " + information2
-                        bot.send_message(sender_id,info)
+                        information = "Bonjour, Nous sommes une petite entreprise qui fait une location des terrains scientitiques ici Antananarivo"
+                        bot.send_message(sender_id,information)
                         bot.send_quick_reply(sender_id) 
-                
+
                 if message.get('postback'):
                     recipient_id = message['sender']['id']
                     pst_payload = message['postback']['payload']
@@ -106,6 +128,24 @@ class Traitement:
             pageInfo = "Les informations concernants notre page arrivent bientôt ici"
             bot.send_message(sender_id,pageInfo) 
 
+    def traitement_pstPayload(self,sender_id,pst_payload):
+        listeElementPayload = pst_payload.split()
+
+        #----------------------PREMIER TEMPLATE GENERIC AVEC TROIS PALYLOAD------------------------------------#
+
+        if listeElementPayload[0] == "__GALERY":
+            données = self.gallery(int(listeElementPayload[1]))
+            bot.send_template(sender_id,données)
+        elif listeElementPayload[0] == "__DETAILS":
+            url = self.details(int(listeElementPayload[1]))
+            bot.send_file_url(sender_id,url,"image")
+
+        #----------------------DEUXIEME TEMPLATE GENERIC AVEC TROIS PALYLOAD------------------------------------#
+
+        elif listeElementPayload[0] == "__voirimage":
+            bot.send_file_url(sender_id,listeElementPayload[1],"image")
+
+
     def __execution(self, user_id, commande):
         """
             Fonction privée qui traite les differentes commandes réçu   
@@ -113,9 +153,12 @@ class Traitement:
         #Mettre en vue les messages reçus
         bot.send_action(user_id, 'mark_seen')
 
-        #traiter les commandes obtenus
-        self.traitement_cmd(user_id,commande)
+        # #traiter les commandes obtenus
+        if self.traitement_cmd(user_id,commande):
+            return
 
+        if self.traitement_pstPayload(user_id,commande):
+            return
     
 
         

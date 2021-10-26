@@ -25,8 +25,30 @@ class Requete:
 
     @verif_db
     def get_produits(self):
-        req = ' SELECT id_prod, nom_prod, prix, photo_couverture FROM produits'
+        req = """ 
+                SELECT id_prod, nom_prod, prix,
+                photo_couverture FROM produits
+                
+              """
         self.cursor.execute(req)
         return self.cursor.fetchall()
 
-    
+    @verif_db
+    def get_gallerry(self,id_prod):
+        req = """ 
+                SELECT contenu FROM galeries 
+                WHERE id_prod = %s
+
+              """
+        self.cursor.execute(req,(id_prod,))
+        return self.cursor.fetchall()
+
+    @verif_db
+    def get_detail(self,id_prod):
+        req = """
+                SELECT details FROM produits
+                WHERE id_prod = %s     
+
+              """
+        self.cursor.execute(req,(id_prod,))
+        return self.cursor.fetchall()
