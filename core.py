@@ -1,5 +1,6 @@
 import messenger
 from conf import ACCESS_TOKEN
+from datetime import date , datetime
 import requete
 
 bot = messenger.Messenger(ACCESS_TOKEN)
@@ -35,7 +36,7 @@ class Traitement:
                     {
                         "type":"postback",
                         "title":"Disponibilité",
-                        "payload":"__DISPONIBILITÉ"
+                        "payload":"__DISPONIBILITÉ" + " " + str(self.photos[i][0])
                     }  
                 ]           
             })
@@ -72,8 +73,10 @@ class Traitement:
 
 
 
-#--------------------------------------------FIN OPTIONS------------------------------------------------------------------#
+#--------------------------------------------FIN OPTIONS----------------------------------------------------------------#
 
+
+#-------------------------------------ANALYSES DES MESSAGES POSTÉS PAR LES UTILISATEURS--------------------------------#
     def _analyse(self, data):           
         '''
             Fonction analysant les données reçu de Facebook
@@ -95,21 +98,162 @@ class Traitement:
                           
                     elif message['message'].get('text'):
                         # cas d'une reponse par text simple.
-                        #envoi au traitement
                         self.__execution(
                             sender_id,
-                            message['message'].get('text')
+                            message['message'].get('text')  
                         )
-                        
-                        information = "Bonjour, Nous sommes une petite entreprise qui fait une location des terrains scientitiques ici Antananarivo"
-                        bot.send_message(sender_id,information)
-                        bot.send_quick_reply(sender_id) 
 
+                        
                 if message.get('postback'):
                     recipient_id = message['sender']['id']
                     pst_payload = message['postback']['payload']
                     # envoie au traitement
                     self.__execution(recipient_id, pst_payload) 
+    
+    #-------------------------------FIN ANALYSES DES MESSAGES POSTÉS PAR LES UTILISATEURS--------------------------------#
+
+
+    #--------------------------------------LES TRAITEMENTS---------------------------------------------------------------#
+    def salutation(self,sender_id):
+        information = "Bonjour, Nous sommes une petite entreprise qui fait une location des terrains scientitiques ici Antananarivo"
+        bot.send_message(sender_id,information)
+        bot.send_quick_reply(sender_id)
+        return True
+   
+    def traitement_action(self,sender_id,commande,action):
+        if action[0] == "DATE":
+            req.set_action(sender_id,None)
+            self.daty = commande 
+            verifTypeDate = self.daty.split("-")
+            dateNow = str(date.today().strftime("%d-%m-%Y")).split("-")
+            
+            #Conditions qui verifient les types de la date entrée par l'utilisateur
+            if (not verifTypeDate[0].isdigit() or (int(verifTypeDate[0]) not in range(0,32))) \
+            or (not verifTypeDate[1].isdigit() or (int(verifTypeDate[1]) not in range(1,13))) \
+            or (not verifTypeDate[2].isdigit() or (int(verifTypeDate[2]) not in range(2021,2023))):
+                bot.send_message(sender_id,"Votre date est invalide\n\nVeuillez saisir à nouveau et suivez le bon format😊😊😊:")
+                req.set_action(sender_id,"DATE")
+                return True
+
+            elif (int(verifTypeDate[0])<int(dateNow[0]) and (int(verifTypeDate[1])==int(dateNow[1])) and (int(verifTypeDate[2])==int(dateNow[2]))) \
+            or ((int(verifTypeDate[1])<int(dateNow[1])) and (int(verifTypeDate[2])==int(dateNow[2]))):
+                bot.send_message(sender_id,"Votre date est invalide\n\nPeut être cette date est déjà passée\n\n"
+                +"Alors veuillez-vous saisir à nouveau et faire le bon choix pour la future date et pourqoui pas maintenant?"
+                +"😊😊😊")
+                req.set_action(sender_id,"DATE")
+                return True
+
+            else:
+                _dateAlaTerrain = datetime.strptime(self.daty, "%d-%m-%Y")
+                __dateAlaTerrain = _dateAlaTerrain.strftime("%Y-%m-%d")
+                exist = req.date_dispo(__dateAlaTerrain,self.listeElementPayload[1])
+                if exist:
+                    heureDejaReserve = req.heureReserve(__dateAlaTerrain,self.listeElementPayload[1])
+                    k=0
+                    self.listeHeureDebut = []
+                    self.listeHeureFin = []
+                    while k<len(heureDejaReserve):
+                        self.listeHeureDebut.append(str(heureDejaReserve[k][0]))
+                        self.listeHeureFin.append(str(heureDejaReserve[k][1]))
+                        k = k + 1
+                    
+                    self.listeHeureDebutTraiter = []
+                    self.listeHeureFinTraiter = []
+                    x  = 0
+                    y = 0
+                    while x<len(self.listeHeureDebut):
+                        self.listeHeureDebutTraiter.append(
+                            str(self.listeHeureDebut[x]).split(":")[0] + "h" + str(self.listeHeureDebut[x]).split(":")[1]
+                        )
+                        x = x + 1
+
+                    while y<len(self.listeHeureFin):
+                        self.listeHeureFinTraiter.append(
+                            str(self.listeHeureFin[y]).split(":")[0] + "h" + str(self.listeHeureFin[y]).split(":")[1]
+                        )
+                        y = y + 1
+
+                    w = 0
+                    listeMessage = []
+                    while w<len(self.listeHeureDebutTraiter):
+                        message = self.listeHeureDebutTraiter[w]+" à "+self.listeHeureFinTraiter[w]
+                        w = w + 1
+                        listeMessage.append(message)
+
+                    bot.send_message(sender_id,"Pour cette Date; les heures déjà resérvés sont:\n\n"
+                    +"\n".join(listeMessage)+"\n\nDonc vous pouvez choisir vos heures à part cela")
+                    bot.send_message(sender_id,"Saisir alors votre heure de Debut en format HHhMM\n"+
+                    "Exemple 12h00")
+
+                    req.set_action(sender_id,"HEURE_DEBUT")
+                    return True
+                    
+                else:
+                    bot.send_message(sender_id,
+                    "Pour cette date, il n'y a pas encore des reservations,"
+                    +"donc vous êtes libre de choisir vos heures entre 6h00 à 20h00"
+                    )
+                    bot.send_message(sender_id,"Saisir alors votre Heure de debut en format HHhMM\n"+
+                    "Exemple 12h00")
+                    return True
+
+        elif action[0] == "HEURE_DEBUT":
+            self.heure_debut = commande
+            self.verifHeureDeDebut = self.heure_debut.split("h")
+
+            if(not self.verifHeureDeDebut[0].isdigit() or int(self.verifHeureDeDebut[0])<6 or int(self.verifHeureDeDebut[0])>20) \
+                or (not self.verifHeureDeDebut[1].isdigit() or int(self.verifHeureDeDebut[1])>59):
+                bot.send_message(sender_id,
+                "Votre heure est invalide\nVeuillez saisir à nouveau et suivez le bon format\nMerci"
+                )
+                return True
+            else:
+                # print(self.listeHeureDebutTraiter[1].split("h")[0])
+                a=0
+                b=0
+                self.verifIntervalleDebut = []
+                self.verifIntervalleFin = []
+                print(self.verifIntervalleDebut)
+                while a<len(self.listeHeureDebutTraiter):
+                    self.verifIntervalleDebut.append(self.listeHeureDebutTraiter[a].split("h")[0])
+                    a = a + 1
+
+                while b<len(self.listeHeureFinTraiter):
+                    self.verifIntervalleFin.append(self.listeHeureFinTraiter[b].split("h")[0])
+                    b = b + 1
+
+                c=0
+                while c<len(self.verifIntervalleDebut):
+                    if int(self.verifIntervalleDebut[c])<=int(self.verifHeureDeDebut[0])<int(self.verifIntervalleFin[c]):
+                        print("marina")
+                    elif int(self.verifHeureDeDebut[0])==int(self.verifIntervalleFin[c]):
+                        print("marina farany")
+                    else:
+                        pass   
+                    c = c + 1
+                    return True
+
+                # print(self.verifIntervalleDebut)
+                # bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
+                # "Exemple 12h00")
+                # req.set_action(sender_id,"HEURE_FIN")
+                # return True
+
+        elif action[0] == "HEURE_FIN":
+            self.heure_fin = commande
+            self.verifHeureDeFin = self.heure_fin.split("h")
+
+            print(self.verifHeureDeFin)
+            if(not self.verifHeureDeFin[0].isdigit() or int(self.verifHeureDeFin[0])<6 or int(self.verifHeureDeFin[0])>19) \
+                or (not self.verifHeureDeFin[1].isdigit() or int(self.verifHeureDeFin[1])>59):
+                bot.send_message(sender_id,
+                "Votre heure est invalide\nVeuillez saisir à nouveau et suivez le bon format\nMerci"
+                )
+                return True
+            else:
+                print(self.heure_fin)
+                req.set_action(sender_id,None)
+                return True
 
     def traitement_cmd(self,sender_id,commande):
         """
@@ -123,44 +267,75 @@ class Traitement:
             produitDispo = "Voici donc les differents terrains disponibles"
             bot.send_message(sender_id,produitDispo)
             bot.send_template(sender_id,self.elements_produits())
+            req.set_action(sender_id,None)
+            return True
 
         elif commande == "__information":
             pageInfo = "Les informations concernants notre page arrivent bientôt ici"
             bot.send_message(sender_id,pageInfo) 
+            req.set_action(sender_id,None)
+            return True
 
     def traitement_pstPayload(self,sender_id,pst_payload):
-        listeElementPayload = pst_payload.split()
+        self.listeElementPayload = pst_payload.split()
 
-        #----------------------PREMIER TEMPLATE GENERIC AVEC TROIS PALYLOAD------------------------------------#
-
-        if listeElementPayload[0] == "__GALERY":
-            données = self.gallery(int(listeElementPayload[1]))
+        #PREMIER TEMPLATE GENERIC AVEC TROIS PALYLOAD
+        if self.listeElementPayload[0] == "__GALERY":
+            données = self.gallery(int(self.listeElementPayload[1]))
             bot.send_template(sender_id,données)
-        elif listeElementPayload[0] == "__DETAILS":
-            url = self.details(int(listeElementPayload[1]))
+            req.set_action(sender_id,None)
+            return True
+
+        elif self.listeElementPayload[0] == "__DETAILS":
+            url = self.details(int(self.listeElementPayload[1]))
             bot.send_file_url(sender_id,url,"image")
+            req.set_action(sender_id,None)
+            return True
 
-        #----------------------DEUXIEME TEMPLATE GENERIC AVEC TROIS PALYLOAD------------------------------------#
+        elif self.listeElementPayload[0] == "__DISPONIBILITÉ":
+            bot.send_message(sender_id,
+            " De quelle date?\n\nSaisir la date sous forme JJ-MM-AAAA\n\nExemple: " + str(date.today().strftime("%d-%m-%Y")))  
+            req.set_action(sender_id,"DATE")
+            return True
 
-        elif listeElementPayload[0] == "__voirimage":
-            bot.send_file_url(sender_id,listeElementPayload[1],"image")
+        #DEUXIEME TEMPLATE GENERIC AVEC TROIS PALYLOAD
+        elif self.listeElementPayload[0] == "__voirimage":
+            bot.send_file_url(sender_id,self.listeElementPayload[1],"image")
+            return True
 
+
+
+
+    #-------------------------------------LE COEUR DES TRAITEMENTS---------------------------------------------#
 
     def __execution(self, user_id, commande):
         """
             Fonction privée qui traite les differentes commandes réçu   
         """
+        # Verification du sender dans la base
+        # Insertion si non présent
+        req.verif_utilisateur(user_id)
+        
         #Mettre en vue les messages reçus
         bot.send_action(user_id, 'mark_seen')
 
+        # recuperer l'action de l'utilisateur.
+        statut = req.get_action(user_id)
+
+        # traitement par action courrant
+        if self.traitement_action(user_id,commande,statut):
+            return
         # #traiter les commandes obtenus
         if self.traitement_cmd(user_id,commande):
             return
 
         if self.traitement_pstPayload(user_id,commande):
-            return
-    
+            return 
 
+        if self.salutation(user_id):
+            return 
+    
+        
         
 
 
