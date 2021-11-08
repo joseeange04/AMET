@@ -61,50 +61,97 @@ class Messenger:
             params=params
         )
 
-    def send_quick_reply(self, dest_id):
+    def send_quick_reply(self, dest_id,types):
         '''
             Envoie des quick reply messenger
         '''
-        text = "Qu'est-ce que vous voulez faire ensuite donc?"
-        quick_rep = [
-                {
-                    "content_type": "text",
-                    "title": "  Louer du terrain",
-                    "payload": "__louer_terrain",
-                    "image_url":
-                        "https://cdn.icon-icons.com/icons2/343/PNG/512/Football-pitch_35793.png"
+        if types == "proposerAction":
+
+            text = "Qu'est-ce que vous voulez faire ensuite donc?"
+            quick_rep = [
+                    {
+                        "content_type": "text",
+                        "title": "  Louer du terrain",
+                        "payload": "__louer_terrain",
+                        "image_url":
+                            "https://cdn.icon-icons.com/icons2/343/PNG/512/Football-pitch_35793.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Plus d'information",
+                        "payload": "__information",
+                        "image_url":
+                            "https://png.pngtree.com/png-clipart/20190903/original/pngtree-personal-information-icon-png-image_4436300.jpg"
+                    }
+                ]
+
+            data_json = {
+                'messaging_type': "RESPONSE",
+                'recipient': {
+                    "id": dest_id
                 },
-                {
-                    "content_type": "text",
-                    "title": "Plus d'information",
-                    "payload": "__information",
-                    "image_url":
-                        "https://png.pngtree.com/png-clipart/20190903/original/pngtree-personal-information-icon-png-image_4436300.jpg"
+
+                'message': {
+                    'text': text,
+                    'quick_replies': quick_rep
                 }
-            ]
-
-        data_json = {
-            'messaging_type': "RESPONSE",
-            'recipient': {
-                "id": dest_id
-            },
-
-            'message': {
-                'text': text,
-                'quick_replies': quick_rep
             }
-        }
 
-        header = {'content-type': 'application/json; charset=utf-8'}
-        params = {"access_token": self.token}
+            header = {'content-type': 'application/json; charset=utf-8'}
+            params = {"access_token": self.token}
 
-        return requests.post(
-            self.url + '/messages',
-            json=data_json,
-            headers=header,
-            params=params
-        )
+            return requests.post(
+                self.url + '/messages',
+                json=data_json,
+                headers=header,
+                params=params
+            )
 
+        elif types == "proposerCmd":
+            text = "Alors, Vous voulez quoi maintenant?\n\nCmd: commande"
+            quick_rep = [
+                    {
+                        "content_type": "text",
+                        "title": "Cmd de cette date 😍😍",
+                        "payload": "__cmdDateActu",
+                        "image_url":"http://assets.stickpng.com/images/58afdad6829958a978a4a693.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Cmd à autre date 🥰🥰",
+                        "payload": "__cmdAutreDate",
+                        "image_url":"https://upload.wikimedia.org/wikipedia/commons/c/c7/Solid_green.png"
+
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Juste curieux 😇😇🙂🙃",
+                        "payload": "__curieux",
+                        "image_url":"https://png.pngitem.com/pimgs/s/63-631808_png-light-effects-for-picsart-glow-yellow-transparent.png"
+                    }
+                ]
+
+            data_json = {
+                'messaging_type': "RESPONSE",
+                'recipient': {
+                    "id": dest_id
+                },
+
+                'message': {
+                    'text': text,
+                    'quick_replies': quick_rep
+                }
+            }
+
+            header = {'content-type': 'application/json; charset=utf-8'}
+            params = {"access_token": self.token}
+
+            return requests.post(
+                self.url + '/messages',
+                json=data_json,
+                headers=header,
+                params=params
+            )
 
     def send_template(self, destId, elements):
         '''

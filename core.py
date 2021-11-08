@@ -121,7 +121,7 @@ class Traitement:
     def salutation(self,sender_id):
         information = "Bonjour, Nous sommes une petite entreprise qui fait une location des terrains scientitiques ici Antananarivo"
         bot.send_message(sender_id,information)
-        bot.send_quick_reply(sender_id)
+        bot.send_quick_reply(sender_id,"proposerAction")
         return True
    
     def traitement_action(self,sender_id,commande,action):
@@ -186,10 +186,8 @@ class Traitement:
 
                     bot.send_message(sender_id,"Pour cette Date; les heures déjà resérvés sont:\n\n"
                     +"\n".join(listeMessage)+"\n\nDonc vous pouvez choisir vos heures à part cela")
-                    bot.send_message(sender_id,"Saisir alors votre heure de Debut en format HHhMM\n"+
-                    "Exemple: 12h00")
-
-                    req.set_action(sender_id,"HEURE_DEBUT")
+                    bot.send_quick_reply(sender_id,"proposerCmd")
+                    req.set_action(sender_id,None)
                     return True
                     
                 else:
@@ -199,6 +197,7 @@ class Traitement:
                     )
                     bot.send_message(sender_id,"Saisir alors votre heure de debut en format HHhMM\n"+
                     "Exemple: 12h00")
+                    req.set_action(sender_id,"HEURE_DEBUT")
                     return True
 
         elif action[0] == "HEURE_DEBUT":
@@ -233,7 +232,6 @@ class Traitement:
                             bot.send_message(sender_id," Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
                             +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
                             +"Merci 😊😊😊")
-                            req.set_action(sender_id,None)
                             return True
                         elif int(self.verifHeureDeDebut[0])==int(self.verifIntervalleFin[c]):
                             if int(self.verifHeureDeDebut[1])>=int(self.listeHeureFinTraiter[c].split("h")[1]):
@@ -349,6 +347,26 @@ class Traitement:
             bot.send_message(sender_id,pageInfo) 
             req.set_action(sender_id,None)
             return True
+
+        elif commande == "__cmdDateActu":
+            bot.send_message(sender_id,"Saisir alors votre heure de Debut en format HHhMM\n"+
+            "Exemple: 12h00")
+            req.set_action(sender_id,"HEURE_DEBUT")
+            return True
+
+        elif commande == "__cmdAutreDate":
+            bot.send_message(sender_id,"Entrer alors la date en respctant toujours le bon format😊😊😊")
+            req.set_action(sender_id,"DATE")
+            return True
+
+        elif commande == "__curieux":
+            bot.send_message(sender_id,"Merci beaucoup pour votre curiosité et la visite de notre page😊😊😊\n\n"
+            +"Vous pouvez encore  faire un commade maintenant même ou à une autre jour si vous voulez en envoyant"
+            +" encore de message 😉😉😉\n\nSinon A Bientôt ✋✋✋✋✋✋✋")
+            req.set_action(sender_id,None)
+            return True
+
+
 
     def traitement_pstPayload(self,sender_id,pst_payload):
         self.listeElementPayload = pst_payload.split()
