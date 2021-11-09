@@ -124,9 +124,9 @@ class Traitement:
         bot.send_quick_reply(sender_id,"proposerAction")
         return True
    
+
     def traitement_action(self,sender_id,commande,action):
         if action[0] == "DATE":
-            req.set_action(sender_id,None)
             self.daty = commande 
             verifTypeDate = self.daty.split("-")
             dateNow = str(date.today().strftime("%d-%m-%Y")).split("-")
@@ -148,17 +148,18 @@ class Traitement:
                 return True
 
             else:
-                _dateAlaTerrain = datetime.strptime(self.daty, "%d-%m-%Y")
-                __dateAlaTerrain = _dateAlaTerrain.strftime("%Y-%m-%d")
-                exist = req.date_dispo(__dateAlaTerrain,self.listeElementPayload[1])
-                if exist:
-                    heureDejaReserve = req.heureReserve(__dateAlaTerrain,self.listeElementPayload[1])
+                self.dateAlaTerrain = datetime.strptime(self.daty, "%d-%m-%Y")
+                self.dateAlaTerrainFormater = self.dateAlaTerrain.strftime("%Y-%m-%d")
+                self.exist = req.date_dispo(self.dateAlaTerrainFormater,self.listeElementPayload[1])
+                if self.exist:
+                    print(self.dateAlaTerrainFormater)
+                    self.heureDejaReserve = req.heureReserve(self.dateAlaTerrainFormater,self.listeElementPayload[1])
                     k=0
                     self.listeHeureDebut = []
                     self.listeHeureFin = []
-                    while k<len(heureDejaReserve):
-                        self.listeHeureDebut.append(str(heureDejaReserve[k][0]))
-                        self.listeHeureFin.append(str(heureDejaReserve[k][1]))
+                    while k<len(self.heureDejaReserve):
+                        self.listeHeureDebut.append(str(self.heureDejaReserve[k][0]))
+                        self.listeHeureFin.append(str(self.heureDejaReserve[k][1]))
                         k = k + 1
                     
                     self.listeHeureDebutTraiter = []
@@ -195,9 +196,8 @@ class Traitement:
                     "Pour cette date, il n'y a pas encore des reservations,"
                     +"donc vous êtes libre de choisir vos heures entre 6h00 à 20h00"
                     )
-                    bot.send_message(sender_id,"Saisir alors votre heure de debut en format HHhMM\n"+
-                    "Exemple: 12h00")
-                    req.set_action(sender_id,"HEURE_DEBUT")
+                    bot.send_quick_reply(sender_id,"proposerCmd")
+                    req.set_action(sender_id,None)
                     return True
 
         elif action[0] == "HEURE_DEBUT":
@@ -211,55 +211,64 @@ class Traitement:
                 )
                 return True
             else:
-
                 if (int(self.verifHeureDeDebut[1]) == 0) or (int(self.verifHeureDeDebut[1]) == 30):
-                    a=0
-                    b=0
-                    self.verifIntervalleDebut = []
-                    self.verifIntervalleFin = []
-                    print(self.verifIntervalleDebut)
-                    while a<len(self.listeHeureDebutTraiter):
-                        self.verifIntervalleDebut.append(self.listeHeureDebutTraiter[a].split("h")[0])
-                        a = a + 1
+                    if self.exist:
+                        print("miditra ato zah zan!!")
+                        a=0
+                        b=0
+                        self.verifIntervalleDebut = []
+                        self.verifIntervalleFin = []
+                        while a<len(self.listeHeureDebutTraiter):
+                            self.verifIntervalleDebut.append(self.listeHeureDebutTraiter[a].split("h")[0])
+                            a = a + 1
 
-                    while b<len(self.listeHeureFinTraiter):
-                        self.verifIntervalleFin.append(self.listeHeureFinTraiter[b].split("h")[0])
-                        b = b + 1
+                        while b<len(self.listeHeureFinTraiter):
+                            self.verifIntervalleFin.append(self.listeHeureFinTraiter[b].split("h")[0])
+                            b = b + 1
 
-                    c=0
-                    while c<len(self.verifIntervalleDebut):
-                        if int(self.verifIntervalleDebut[c])<=int(self.verifHeureDeDebut[0])<int(self.verifIntervalleFin[c]):
-                            bot.send_message(sender_id," Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
-                            +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
-                            +"Merci 😊😊😊")
-                            return True
-                        elif int(self.verifHeureDeDebut[0])==int(self.verifIntervalleFin[c]):
-                            if int(self.verifHeureDeDebut[1])>=int(self.listeHeureFinTraiter[c].split("h")[1]):
-                                bot.send_message(sender_id,"Saisir votre heure de fin en format HHhMM\n"+
-                                "Exemple 12h00")
-                                req.set_action(sender_id,"HEURE_FIN")
-                                return True
-                            else:
-                                bot.send_message(sender_id," Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
+                        c=0
+                        while c<len(self.verifIntervalleDebut):
+                            if int(self.verifIntervalleDebut[c])<=int(self.verifHeureDeDebut[0])<int(self.verifIntervalleFin[c]):
+                                bot.send_message(sender_id,"Erreur Intervalle1 Debut: Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
                                 +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
                                 +"Merci 😊😊😊")
                                 return True
-                        else:
-                            pass 
-                        c = c + 1
+                            elif int(self.verifHeureDeDebut[0])==int(self.verifIntervalleFin[c]):
+                                if int(self.verifHeureDeDebut[1])>=int(self.listeHeureFinTraiter[c].split("h")[1]):
+                                    bot.send_message(sender_id,"Saisir votre heure de fin en format HHhMM\n"+
+                                    "Exemple 12h00")
+                                    req.set_action(sender_id,"HEURE_FIN")
+                                    print(self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00")
+                                    return True
+                                else:
+                                    bot.send_message(sender_id," Erreur intervale2 Debut: Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
+                                    +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
+                                    +"Merci 😊😊😊")
+                                    return True
+                            else:
+                                pass 
+                            c = c + 1
 
-                    print(self.verifIntervalleDebut)
-                    bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
-                    "Exemple 12h00")
-                    req.set_action(sender_id,"HEURE_FIN")
-                    return True
-                
+                        bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
+                        "Exemple 12h00")
+                        req.set_action(sender_id,"HEURE_FIN")
+                        return True
+                    
+                    else:
+                        print("tsy ao zah zan a")
+                        bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
+                        "Exemple 12h00")
+                        req.set_action(sender_id,"HEURE_FIN")
+                        print(self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00")
+                        return True
+
                 else:
                     print(int(self.verifHeureDeDebut[1]))
-                    bot.send_message(sender_id,"Votre Heure de DEBUT est invalide car il ne respecte pas le marge de"
+                    bot.send_message(sender_id,"Erreur Trance Debut: Votre Heure de DEBUT est invalide car il ne respecte pas le marge de"
                     +"la tranche\n\nVeuillez saisir à nouveau en respectant la marge de trance\n\nMerci😊😊😊")
                     return True
-
+                    
+                    
         elif action[0] == "HEURE_FIN":
             self.heure_fin = commande
             self.verifHeureDeFin = self.heure_fin.split("h")
@@ -274,56 +283,70 @@ class Traitement:
             else:
 
                 if int(self.verifHeureDeFin[1]) == 0 or int(self.verifHeureDeFin[1]) == 30:
-                    d=0
-                    while d<len(self.verifIntervalleDebut):
-                        if int(self.verifIntervalleDebut[d])<=int(self.verifHeureDeFin[0])<int(self.verifIntervalleFin[d]):
-                            bot.send_message(sender_id," Votre heure de FIN est tombé dans l'intervalle de temps des heures déjà"
-                            +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
-                            +"Merci 😊😊😊")
+                    if self.exist:
+                        d=0
+                        while d<len(self.verifIntervalleDebut):
+                            if int(self.verifIntervalleDebut[d])<=int(self.verifHeureDeFin[0])<int(self.verifIntervalleFin[d]):
+                                bot.send_message(sender_id," Erreur intervalle1 FIN: Votre heure de FIN est tombé dans l'intervalle de temps des heures déjà"
+                                +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
+                                +"Merci 😊😊😊")
+                                return True
+                            elif int(self.verifHeureDeFin[0])==int(self.verifIntervalleDebut[d]):
+                                if int(self.verifHeureDeFin[1])<=int(self.listeHeureDebutTraiter[d].split("h")[1]):
+                                    if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
+                                        bot.send_message(sender_id,"Erreur Marge Fin1: Votre heure de Fin est ivalide car selon la marge du commande"
+                                        +", il est forcement plus d'une heure le commande\n\n"+
+                                        "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
+                                        return True
+                                    else:   
+                                        bot.send_message(sender_id,"bien recu 1")
+                                        req.set_action(sender_id,None)
+                                        print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                                        return True
+                            else:
+                                pass 
+                            d = d + 1
+
+                        if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
+                            bot.send_message(sender_id,"Erreur Marge Fin2:Votre heure de Fin est ivalide car selon la marge du commande"
+                            +", il est forcement plus de une heure le commande\n\n"+
+                            "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
                             return True
-                        elif int(self.verifHeureDeFin[0])==int(self.verifIntervalleDebut[d]):
-                            if int(self.verifHeureDeFin[1])<=int(self.listeHeureDebutTraiter[d].split("h")[1]):
-                                if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
-                                    bot.send_message(sender_id,"Votre heure de Fin est ivalide car selon la marge du commande"
-                                    +", il est forcement plus d'une heure le commande\n\n"+
-                                    "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
-                                    return True
-                                else:   
-                                    bot.send_message(sender_id,"bien recu")
-                                    req.set_action(sender_id,None)
-                                    return True
                         else:
-                            pass 
-                        d = d + 1
-
-                    if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
-                        bot.send_message(sender_id,"Votre heure de Fin est ivalide car selon la marge du commande"
-                        +", il est forcement plus de une heure le commande\n\n"+
-                        "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
-                        return True
-                    else:
-
-                        self.listeHeureDebutEtFin = self.verifIntervalleDebut + self.verifIntervalleFin
-                        print(self.listeHeureDebutEtFin)
-                        for e in range(int(self.verifHeureDeDebut[0]),int(self.verifHeureDeFin[0])+1):
-                            for f in range (len(self.listeHeureDebutEtFin)):
-                                if e == int(self.listeHeureDebutEtFin[f]):
-                                    print(int(self.listeHeureDebutEtFin[f]))
-                                    print(e)
-                                    bot.send_message(sender_id,"Erreur:Votre heure de FIN est tombé dans l'intervalle de temps des heures déjà"
-                                    +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
-                                    +"Merci 😊😊😊")
-                                    req.set_action(sender_id,"HEURE_FIN")
-                                    return True
-                                else:
-                                    pass
+                            self.listeHeureDebutEtFin = self.verifIntervalleDebut + self.verifIntervalleFin
+                            print(self.listeHeureDebutEtFin)
+                            for e in range(int(self.verifHeureDeDebut[0]),int(self.verifHeureDeFin[0])+1):
+                                for f in range (len(self.listeHeureDebutEtFin)):
+                                    if e == int(self.listeHeureDebutEtFin[f]):
+                                        print(int(self.listeHeureDebutEtFin[f]))
+                                        print(e)
+                                        bot.send_message(sender_id,"Erreur:Votre heure de FIN est tombé dans l'intervalle de temps des heures déjà"
+                                        +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
+                                        +"Merci 😊😊😊")
+                                        req.set_action(sender_id,"HEURE_FIN")
+                                        return True
+                                    else:
+                                        pass
+                            
+                            bot.send_message(sender_id,"bien recu 2")
+                            req.set_action(sender_id,None)
+                            print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                            return True
                         
-                        bot.send_message(sender_id,"bien recu")
-                        req.set_action(sender_id,None)
-                        return True
-
+                    else:
+                        if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
+                            bot.send_message(sender_id,"Erreur Marge Fin 3:Votre heure de Fin est ivalide car selon la marge du commande"
+                            +", il est forcement plus de une heure le commande\n\n"+
+                            "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
+                            return True
+                        else:
+                            bot.send_message(sender_id,"Heure Fin Bien Recu")
+                            req.set_action(sender_id,None)
+                            print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                            return True
+                            
                 else:
-                    bot.send_message(sender_id,"Votre Heure de FIN est invalide car il ne respecte pas le marge de"
+                    bot.send_message(sender_id,"Erreur Trance FIN: Votre Heure de FIN est invalide car il ne respecte pas le marge de"
                     +"la tranche\n\nVeuillez saisir à nouveau en respectant la marge de trance\n\nMerci😊😊😊")
                     return True
 
