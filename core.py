@@ -38,7 +38,7 @@ class Traitement:
                     {
                         "type":"postback",
                         "title":"Disponibilité",
-                        "payload":"__DISPONIBILITÉ" + " " + str(self.photos[i][0])
+                        "payload":"__DISPONIBILITÉ" + " " + str(self.photos[i][0]) + " " + self.photos[i][1]
                     }  
                 ]           
             })
@@ -90,29 +90,48 @@ class Traitement:
                 if message.get('message'):
                     # recuperation de l'id de l'utilisateur
                     sender_id = message['sender']['id']
+                    sender_id_admin = "4435320363255529" 
 
-                    if sender_id == "4435320363255529" :
-                        admin.sendMessage(sender_id)
-                        return True
-                    else:
-                        if message['message'].get('quick_reply'):
-                            # cas d'une reponse de type QUICK_REPLY
+                    if message['message'].get('quick_reply'):
+                        # cas d'une reponse de type QUICK_REPLY
+                        if sender_id == sender_id_admin:
+                            admin.executionAdmin(
+                                 sender_id_admin,
+                            message['message']['quick_reply'].get('payload')
+                            )
+                        else:
                             self.__execution(
                                 sender_id,
                                 message['message']['quick_reply'].get('payload')
                             )
-                        elif message['message'].get('text'):
-                            # cas d'une reponse par text simple.
+
+
+                    elif message['message'].get('text'):
+                        # cas d'une reponse par text simple.
+                        if sender_id == sender_id_admin:
+                             admin.executionAdmin(
+                                 sender_id_admin,
+                                 message['message'].get('text')  
+                            )
+                        else:   
                             self.__execution(
                                 sender_id,
                                 message['message'].get('text')  
                             )
       
                 if message.get('postback'):
-                    recipient_id = message['sender']['id']
-                    pst_payload = message['postback']['payload']
-                    # envoie au traitement
-                    self.__execution(recipient_id, pst_payload) 
+                    sender_id = message['sender']['id']
+                    sender_id_admin = "4435320363255529"
+                    if sender_id == sender_id_admin:
+                        recipient_idAdmin= message['sender']['id']
+                        pst_payload = message['postback']['payload']
+                        # envoie au traitement
+                        admin.executionAdmin(recipient_idAdmin, pst_payload) 
+                    else:
+                        recipient_id= message['sender']['id']
+                        pst_payload = message['postback']['payload']
+                        # envoie au traitement
+                        self.__execution(recipient_id, pst_payload) 
     
     #-------------------------------FIN ANALYSES DES MESSAGES POSTÉS PAR LES UTILISATEURS--------------------------------#
 
@@ -299,7 +318,8 @@ class Traitement:
                                         "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
                                         return True
                                     else:   
-                                        bot.send_message(sender_id,"bien recu 1")
+                                        bot.send_message(sender_id,"Votre commande est bien récu pour la date "+
+                                        self.daty+" de "+self.heure_debut+" à "+self.heure_fin)
                                         req.set_action(sender_id,None)
                                         print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
                                         return True
@@ -328,9 +348,13 @@ class Traitement:
                                     else:
                                         pass
                             
-                            bot.send_message(sender_id,"bien recu 2")
+                            bot.send_message(sender_id,"Votre commande est bien récu pour la date "+
+                            self.daty+" de "+self.heure_debut+" à "+self.heure_fin + " pour le terrain "
+                            +self.listeElementPayload[1] +" qui est "+ self.listeElementPayload[2]+
+                            " "+self.listeElementPayload[3])
+                            bot.send_quick_reply(sender_id,"confirmCmd")
                             req.set_action(sender_id,None)
-                            print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                            # print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
                             return True
                         
                     else:
@@ -341,6 +365,11 @@ class Traitement:
                             return True
                         else:
                             bot.send_message(sender_id,"Heure Fin Bien Recu")
+                            bot.send_message(sender_id,"Votre commande est bien récu pour la date "+
+                            self.daty+" de "+self.heure_debut+" à "+self.heure_fin + " pour le terrain "
+                            +self.listeElementPayload[1] +" qui est "+ self.listeElementPayload[2]+
+                            " "+self.listeElementPayload[3])
+                            bot.send_quick_reply(sender_id,"confirmCmd")
                             req.set_action(sender_id,None)
                             print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
                             return True
@@ -372,6 +401,13 @@ class Traitement:
             return True
 
         elif commande == "__cmdDateActu":
+            bot.send_message(sender_id,"Maintenat, je vous informe pour les reglements de l'heure que vous "
+            +"entrez. Tout d'abord, le minimum du temps du commande est d'une heure(1h). Ensuite l'intervalle"
+            +" du temps du commande est par la trance de 30 minutes ou 1h, c-a-d votre commande est alors"
+            +" 1h ou 1h30 ou 2h du temps ou ainsi de suite. Et enfin votre heure de fin et heure de début sont alors exprimées"
+            +" de façon 13h30 pour le debut par example et 15h00 celle de la fin, c-a-d il n'y a que de 30 ou 00 le"
+            +" minute des heures que vous entrez.\n\n Pour terminer, regardez bien les intervalles du temps déjà reservés"
+            +" pour votre bonne choix et surtout le format de l'heure qu'on vous suposse à entrer\n\nMerci 😊😊😊")
             bot.send_message(sender_id,"Saisir alors votre heure de Debut en format HHhMM\n"+
             "Exemple: 12h00")
             req.set_action(sender_id,"HEURE_DEBUT")
@@ -385,9 +421,25 @@ class Traitement:
         elif commande == "__curieux":
             bot.send_message(sender_id,"Merci beaucoup pour votre curiosité et la visite de notre page😊😊😊\n\n"
             +"Vous pouvez encore  faire un commade maintenant même ou à une autre jour si vous voulez en envoyant"
-            +" encore de message 😉😉😉\n\nSinon A Bientôt ✋✋✋✋✋✋✋")
+            +" encore de message 😉😉😉\n\nSinon A Bientôt ✋✋✋✋✋")
             req.set_action(sender_id,None)
             return True
+        elif commande == "__oui":
+            #--Eto n requete d'insertion av eo 
+            bot.send_message(sender_id,"Votre commande a été bien enregistrer\n\nPour que nous pouvons"+
+            " confirmer vraiment votre commande, on vous demande de payer une avance du montant"+
+            " 5000Ar et le reste de paymet aura lieu le jour où vous serez au terrain\n\n"+
+            "Voici donc notre numero:\nTELMA:0000000000(Nom:Paul jean BA)\n"
+            +"ORANGE:111111111(Nom:rakoto bleu)\n\nAlors, on vous attend pour l'envoi de l'avance"+
+            "")
+            #asina anle reference anle vola eto aveo, sary fanehoana so mis ts mahay
+            #asina numero d'urgence au cas où?
+            #req.set_action("ATTENTE_REFERENCE)
+            return True
+        elif commande == "__non":
+            bot.send_message(sender_id,"Merci pour la discussion......")
+            return True
+
 
 
 

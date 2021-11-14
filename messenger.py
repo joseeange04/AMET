@@ -153,6 +153,100 @@ class Messenger:
                 params=params
             )
 
+        elif types == "tachesAdmin":
+            text = "Vous voulez faire qoui maintenant Admin?"
+            quick_rep = [
+                    {
+                        "content_type": "text",
+                        "title": "Create😍😍",
+                        "payload": "__create",
+                        "image_url":"http://assets.stickpntachesAdming.com/images/58afdad6829958a978a4a693.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Read 🥰🥰",
+                        "payload": "__read",
+                        "image_url":"https://upload.wikimedia.org/wikipedia/commons/c/c7/Solid_green.png"
+
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Update😇😇",
+                        "payload": "__update",
+                        "image_url":"https://png.pngitem.com/pimgs/s/63-631808_png-light-effects-for-picsart-glow-yellow-transparent.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Delete 🙃🙃",
+                        "payload": "__delete",
+                        "image_url":"https://png.pngitem.com/pimgs/s/63-631808_png-light-effects-for-picsart-glow-yellow-transparent.png"
+                    }
+                ]
+
+            data_json = {
+                'messaging_type': "RESPONSE",
+                'recipient': {
+                    "id": dest_id
+                },
+
+                'message': {
+                    'text': text,
+                    'quick_replies': quick_rep
+                }
+            }
+
+            header = {'content-type': 'application/json; charset=utf-8'}
+            params = {"access_token": self.token}
+
+            return requests.post(
+                self.url + '/messages',
+                json=data_json,
+                headers=header,
+                params=params
+            )
+
+        elif types == "confirmCmd":
+            text = "Maintenant; Veuillez-vous confirmer votre commande?"
+            quick_rep = [
+                    {
+                        "content_type": "text",
+                        "title": "OUI",
+                        "payload": "__oui",
+                        "image_url":
+                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2W5PPm3Um8AYdoL4xKh0LKaM9B2sxgIy1Ug&usqp=CAU"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "Non",
+                        "payload": "__non",
+                        "image_url":
+                            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeq7DzLMFPFYD9M3"
+                            +"xC5orrYOWknbYKYEAncXflfvSNqV6iLwm0aefugMB4MxeiMVupSkU&usqp=CAU"
+                    }
+                ]
+
+            data_json = {
+                'messaging_type': "RESPONSE",
+                'recipient': {
+                    "id": dest_id
+                },
+
+                'message': {
+                    'text': text,
+                    'quick_replies': quick_rep
+                }
+            }
+
+            header = {'content-type': 'application/json; charset=utf-8'}
+            params = {"access_token": self.token}
+
+            return requests.post(
+                self.url + '/messages',
+                json=data_json,
+                headers=header,
+                params=params
+            )
+
     def send_template(self, destId, elements):
         '''
             Envoi des produits sous forme templates
