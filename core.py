@@ -3,6 +3,7 @@ from conf import ACCESS_TOKEN
 from datetime import date , datetime
 import requete
 import admin
+import qrcode
 
 admin = admin.Admin()
 bot = messenger.Messenger(ACCESS_TOKEN)
@@ -91,7 +92,7 @@ class Traitement:
                     # recuperation de l'id de l'utilisateur
                     sender_id = message['sender']['id']
                     sender_id_admin = "4435320363255529" 
-
+                    print(sender_id)
                     if message['message'].get('quick_reply'):
                         # cas d'une reponse de type QUICK_REPLY
                         if sender_id == sender_id_admin:
@@ -257,7 +258,8 @@ class Traitement:
                                     bot.send_message(sender_id,"Saisir votre heure de fin en format HHhMM\n"+
                                     "Exemple 12h00")
                                     req.set_action(sender_id,"HEURE_FIN")
-                                    print(self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00")
+                                    self.heureDebutDefinitive = self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00"
+                                    print(self.heureDebutDefinitive)
                                     return True
                                 else:
                                     bot.send_message(sender_id," Erreur intervale2 Debut: Votre heure de DEBUT est tombé dans l'intervalle de temps des heures déjà"
@@ -278,7 +280,8 @@ class Traitement:
                         bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
                         "Exemple 12h00")
                         req.set_action(sender_id,"HEURE_FIN")
-                        print(self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00")
+                        self.heureDebutDefinitive = self.verifHeureDeDebut[0]+":"+self.verifHeureDeDebut[1]+":00"
+                        print(self.heureDebutDefinitive)
                         return True
 
                 else:
@@ -321,7 +324,8 @@ class Traitement:
                                         bot.send_message(sender_id,"Votre commande est bien récu pour la date "+
                                         self.daty+" de "+self.heure_debut+" à "+self.heure_fin)
                                         req.set_action(sender_id,None)
-                                        print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                                        self.heureFinDefinitive = self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00"
+                                        print(self.heureFinDefinitive)
                                         return True
                             else:
                                 pass 
@@ -354,7 +358,8 @@ class Traitement:
                             " "+self.listeElementPayload[3])
                             bot.send_quick_reply(sender_id,"confirmCmd")
                             req.set_action(sender_id,None)
-                            # print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                            self.heureFinDefinitive = self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00"
+                            print(self.heureFinDefinitive)
                             return True
                         
                     else:
@@ -371,13 +376,32 @@ class Traitement:
                             " "+self.listeElementPayload[3])
                             bot.send_quick_reply(sender_id,"confirmCmd")
                             req.set_action(sender_id,None)
-                            print(self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00")
+                            self.heureFinDefinitive = self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00"
+                            print(self.heureFinDefinitive)
                             return True
                             
                 else:
                     bot.send_message(sender_id,"Erreur Trance FIN: Votre Heure de FIN est invalide car il ne respecte pas le marge de"
                     +"la tranche\n\nVeuillez saisir à nouveau en respectant la marge de trance\n\nMerci😊😊😊")
                     return True
+
+
+        elif action[0] == "ATTENTE_REFERENCE":
+            #envoi de message à l'admin pour verification
+            #condition regex de la reference
+            #envoide de qrcode(id + time.time())
+            bot.send_message(sender_id,"Voici donc votre QRCODE qui est votre ticket d'entrée le jour où"
+            +" vous serez au terrain\n\n Alors le gardé bien 😊😊😊")
+            dataQrCode = req.getElementQrcode(sender_id)
+            img = qrcode.make(f"{dataQrCode[0]}_{dataQrCode[1]}")
+            img.save(f"/opt/AMET/photo/{dataQrCode[0]}_{dataQrCode[1]}.png")
+            bot.send_file_url(sender_id,f"https://amet.iteam-s.xyz/{dataQrCode[0]}_{dataQrCode[1]}.png","image")
+            return True
+            #update statut
+            #req.set_action(sender_id,None)
+            #De ra miverina iz @manaraka de awn ndray n BDD
+            #-----verif sur place pour l'Admin---------#
+            #req de verif where id verif[0] and id+time.time()
 
     def traitement_cmd(self,sender_id,commande):
         """
@@ -417,25 +441,35 @@ class Traitement:
             bot.send_message(sender_id,"Entrer alors la date en respctant toujours le bon format😊😊😊")
             req.set_action(sender_id,"DATE")
             return True
-
+         
         elif commande == "__curieux":
             bot.send_message(sender_id,"Merci beaucoup pour votre curiosité et la visite de notre page😊😊😊\n\n"
             +"Vous pouvez encore  faire un commade maintenant même ou à une autre jour si vous voulez en envoyant"
             +" encore de message 😉😉😉\n\nSinon A Bientôt ✋✋✋✋✋")
             req.set_action(sender_id,None)
             return True
+
         elif commande == "__oui":
-            #--Eto n requete d'insertion av eo 
+            req.insertNouveauCommande(sender_id,self.daty,self.heureDebutDefinitive,self.heureFinDefinitive,self.listeElementPayload[1],str(time.time()))
             bot.send_message(sender_id,"Votre commande a été bien enregistrer\n\nPour que nous pouvons"+
-            " confirmer vraiment votre commande, on vous demande de payer une avance du montant"+
+            " confirmer vraiment votre commande, on vous demande de payer une pétite avance du montant"+
             " 5000Ar et le reste de paymet aura lieu le jour où vous serez au terrain\n\n"+
-            "Voici donc notre numero:\nTELMA:0000000000(Nom:Paul jean BA)\n"
-            +"ORANGE:111111111(Nom:rakoto bleu)\n\nAlors, on vous attend pour l'envoi de l'avance"+
-            "")
-            #asina anle reference anle vola eto aveo, sary fanehoana so mis ts mahay
-            #asina numero d'urgence au cas où?
-            #req.set_action("ATTENTE_REFERENCE)
+            "Voici donc notre numero:\nTELMA:0340000000(Nom:Paul jean BA)\n"
+            +"ORANGE:032000000(Nom:rakoto bleu)\n\nEt après saisir ici votre reference de transaction(celle-ci"
+            +" est comme l'image ci-dessous montre!!\nAlors si vous avez payé l'avance auprès du"
+            " CACHE POINT MOBILE MONEY, n'oublie pas de la recuperer chez eux\n\n"
+            +"Alors, on vous attend pour l'envoi de l'avance et la reférence ici")
+            bot.send_message(sender_id,"Pour le TELMA")
+            bot.send_file_url(sender_id,"https://amet.iteam-s.xyz/telma.jpg","image")
+            bot.send_message(sender_id,"Pour le ORANGE")
+            bot.send_file_url(sender_id,"https://amet.iteam-s.xyz/orange.jpg","image")
+            bot.send_message(sender_id,"Et si vous avez de probleme pour l'envoi de cet avance,"
+            +" vou pouvez appelez les numéro 034000000 et 032000000\n\n ON vous attend donc pour la saisie de la reference")
+            #alerte de 30mn d'envoie de M'Vola ou orange money
+            bot.send_message(sender_id,"Saisir alors votre REFERENCE: ")
+            req.set_action(sender_id,"ATTENTE_REFERENCE")
             return True
+
         elif commande == "__non":
             bot.send_message(sender_id,"Merci pour la discussion......")
             return True

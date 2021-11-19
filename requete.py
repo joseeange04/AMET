@@ -107,3 +107,52 @@ class Requete:
             """
         self.cursor.execute(req,(daty,id_prod))
         return self.cursor.fetchall()
+
+    @verif_db
+    def insertNouveauCommande(self,sender_id,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode):
+        req = """
+               INSERT INTO (id,date_cmd,dateAlaTerrain,heureDebutCmd,HeureFinCmd,id_prod,dataQrCode)
+               VALUES(%s,NOW(),%s,%s,%s,%s,%s) 
+            """
+        self.cursor.execute(req,(sender_id,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode))
+        self.db.commit()
+
+    @verif_db
+    def getElementQrcode(self,sender_id):
+        req = """
+                SELECT id_cmd,dataQrCode FROM commande
+                WHERE sender id = %s AND status = "CONFIRMÉ"
+            """
+        self.cursor.execute(req,(sender_id,))
+        return self.cursor.fetchall()
+
+
+
+    """
+        ------------------*----------Requête admin-------------*---------------
+        1.  Methode pour afficher les produits dans la base
+    """
+    @verif_db
+    def get_product(self):
+        reqAdmin = " SELECT id_prod, nom_prod, details, prix, photo_couverture FROM produits LIMIT 5"
+        self.cursor.execute(reqAdmin)
+        return self.cursor.fetchall()
+
+    """
+        2.  Methode d'ajout de produit
+    """
+    def create_product(self, name, details, prix, photo_couverture):
+        try:
+            self.cursor.execute(
+                '''
+                INSERT INTO produits(name, details, prix, phot_couverture) VALUES ({}, {}, {})
+                '''.format(name, details, prix, photo_couverture)
+            )
+            self.db.commit()
+        except Exception as e:
+            return False
+        return True
+
+
+    
+    

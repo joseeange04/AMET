@@ -206,7 +206,7 @@ class Messenger:
             )
 
         elif types == "confirmCmd":
-            text = "Maintenant; Veuillez-vous confirmer votre commande?"
+            text = "Maintenant; Veuillez-vous confirmer vraiment votre commande?"
             quick_rep = [
                     {
                         "content_type": "text",
