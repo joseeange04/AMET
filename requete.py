@@ -9,7 +9,6 @@ class Requete:
         '''
         self.db = mysql.connector.connect(**DATABASE)
         self.cursor = self.db.cursor()
-        # self.__init_db()
 
     def verif_db(fonction):
         '''
@@ -75,7 +74,7 @@ class Requete:
         req = 'SELECT action FROM utilisateur WHERE fb_id = %s'
         self.cursor.execute(req, (user_id,))
         # retourne le resultat
-        return self.cursor.fetchall()[0]
+        return self.cursor.fetchall() 
 
     @verif_db
     def set_action(self, user_id,action):
@@ -109,12 +108,18 @@ class Requete:
         return self.cursor.fetchall()
 
     @verif_db
-    def insertNouveauCommande(self,sender_id,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode):
+    def getIdUser(self,sender_id):
+        req='SELECT id from utilisateur WHERE fb_id=%s'
+        self.cursor.execute(req,(sender_id,))
+        return self.cursor.fetchall
+
+    @verif_db
+    def insertNouveauCommande(self,idUser,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode):
         req = """
-               INSERT INTO (id,date_cmd,dateAlaTerrain,heureDebutCmd,HeureFinCmd,id_prod,dataQrCode)
+               INSERT INTO commande(id,date_cmd,dateAlaTerrain,heureDebutCmd,HeureFinCmd,id_prod,dataQrCode)
                VALUES(%s,NOW(),%s,%s,%s,%s,%s) 
             """
-        self.cursor.execute(req,(sender_id,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode))
+        self.cursor.execute(req,(idUser,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode))
         self.db.commit()
 
     @verif_db
@@ -134,25 +139,37 @@ class Requete:
     """
     @verif_db
     def get_product(self):
-        reqAdmin = " SELECT id_prod, nom_prod, details, prix, photo_couverture FROM produits LIMIT 5"
+        reqAdmin = "SELECT id_prod, nom_prod, details, prix, photo_couverture FROM produits"
         self.cursor.execute(reqAdmin)
         return self.cursor.fetchall()
 
     """
         2.  Methode d'ajout de produit
     """
+    @verif_db
     def create_product(self, name, details, prix, photo_couverture):
         try:
-            self.cursor.execute(
-                '''
-                INSERT INTO produits(name, details, prix, phot_couverture) VALUES ({}, {}, {})
-                '''.format(name, details, prix, photo_couverture)
-            )
+            reqAdmin = """
+                                 INSERT INTO produits(name, details, prix, phot_couverture) VALUES (%s, %s, %s, %s)
+                                """
+            self.cursor.execute(reqAdmin, (nom_produit, details_produit, prix, couverture))
             self.db.commit()
         except Exception as e:
             return False
         return True
 
-
+    @verif_db
+    def verifAdmin(self, sender_id_admin):
+        '''
+            Fonction d'insertion du nouveau utilisateur
+            et mise à jour de la date de dernière utilisation.
+        '''
+        # Insertion dans la base si non present
+        req = 'INSERT IGNORE INTO utilisateur(fb_id,date_mp,type_user)  VALUES (%s,NOW(),"ADMIN")'
+        self.cursor.execute(req, (sender_id_admin,))
+        # Mise à jour de la date de dernière utilisation
+        req = 'UPDATE utilisateur SET date_mp=NOW() WHERE fb_id = %s'
+        self.cursor.execute(req, (sender_id_admin,))
+        self.db.commit()
     
     

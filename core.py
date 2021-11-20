@@ -1,6 +1,7 @@
 import messenger
 from conf import ACCESS_TOKEN
 from datetime import date , datetime
+import time
 import requete
 import admin
 import qrcode
@@ -24,7 +25,7 @@ class Traitement:
         while i < len(self.photos):
             produits.append({
                 "title":str(self.photos[i][0]) + " - " + self.photos[i][1],
-                "image_url":"https://amet.iteam-s.xyz/" + self.photos[i][3],
+                "image_url":self.photos[i][3],
                 "subtitle":"Prix : " + str(self.photos[i][2]) + " Ar /heures",
                 "buttons":[ 
                     {
@@ -56,12 +57,12 @@ class Traitement:
         while j < len(self.all_gallerry):
             listeGallery.append({
                 "title":"image 😊😊😊",
-                "image_url":"https://amet.iteam-s.xyz/" + self.all_gallerry[j][0],
+                "image_url":self.all_gallerry[j][0],
                 "buttons":[ 
                     {
                         "type":"postback",
                         "title":"voir image",
-                        "payload": "__voirimage" + " " +  "https://amet.iteam-s.xyz/" + self.all_gallerry[j][0]
+                        "payload": "__voirimage" + " " +  self.all_gallerry[j][0]
                     } 
                 ]           
             })
@@ -71,7 +72,7 @@ class Traitement:
     
     def details(self,id_prod):
         self.photoDetails = req.get_detail(id_prod)
-        urlDetails = "https://amet.iteam-s.xyz/" + self.photoDetails[0][0]
+        urlDetails = self.photoDetails[0][0]
         return urlDetails   
 
 
@@ -92,7 +93,7 @@ class Traitement:
                     # recuperation de l'id de l'utilisateur
                     sender_id = message['sender']['id']
                     sender_id_admin = "4435320363255529" 
-                    print(sender_id)
+                    # print(sender_id)
                     if message['message'].get('quick_reply'):
                         # cas d'une reponse de type QUICK_REPLY
                         if sender_id == sender_id_admin:
@@ -119,6 +120,15 @@ class Traitement:
                                 sender_id,
                                 message['message'].get('text')  
                             )
+
+                    elif message['message'].get('attachments'):
+                        if sender_id == sender_id_admin:
+                            print("attachment")
+                            return True
+                        else:
+                            print("attechments Clients")
+                            return True
+
       
                 if message.get('postback'):
                     sender_id = message['sender']['id']
@@ -133,6 +143,7 @@ class Traitement:
                         pst_payload = message['postback']['payload']
                         # envoie au traitement
                         self.__execution(recipient_id, pst_payload) 
+
     
     #-------------------------------FIN ANALYSES DES MESSAGES POSTÉS PAR LES UTILISATEURS--------------------------------#
 
@@ -146,6 +157,8 @@ class Traitement:
    
 
     def traitement_action(self,sender_id,commande,action):
+        print(commande)
+        print(action)
         if action[0] == "DATE":
             self.daty = commande 
             verifTypeDate = self.daty.split("-")
@@ -450,7 +463,9 @@ class Traitement:
             return True
 
         elif commande == "__oui":
-            req.insertNouveauCommande(sender_id,self.daty,self.heureDebutDefinitive,self.heureFinDefinitive,self.listeElementPayload[1],str(time.time()))
+            idUser = req.getIdUser(sender_id)
+            print(idUser)
+            # req.insertNouveauCommande(idUser,self.dateAlaTerrainFormater,self.heureDebutDefinitive,self.heureFinDefinitive,self.listeElementPayload[1],str(time.time()))
             bot.send_message(sender_id,"Votre commande a été bien enregistrer\n\nPour que nous pouvons"+
             " confirmer vraiment votre commande, on vous demande de payer une pétite avance du montant"+
             " 5000Ar et le reste de paymet aura lieu le jour où vous serez au terrain\n\n"+
@@ -473,8 +488,6 @@ class Traitement:
         elif commande == "__non":
             bot.send_message(sender_id,"Merci pour la discussion......")
             return True
-
-
 
 
     def traitement_pstPayload(self,sender_id,pst_payload):

@@ -154,7 +154,7 @@ class Messenger:
             )
 
         elif types == "tachesAdmin":
-            text = "Vous voulez faire qoui maintenant Admin?"
+            text = "Que souhaitez-vous faire maintenant Admin?"
             quick_rep = [
                     {
                         "content_type": "text",
@@ -246,6 +246,60 @@ class Messenger:
                 headers=header,
                 params=params
             )
+        
+        elif types == "proposeModifierAdmin":
+
+            text = "Que souhaitez-vous modifier Admin?"
+            quick_rep = [
+                    {
+                        "content_type": "text",
+                        "title": "NOM😍😍",
+                        "payload": "__NOM",
+                        "image_url":"http://assets.stickpntachesAdming.com/images/58afdad6829958a978a4a693.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "DETAILS 🥰🥰",
+                        "payload": "__DETAILS",
+                        "image_url":"https://upload.wikimedia.org/wikipedia/commons/c/c7/Solid_green.png"
+
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "PRIX😇😇",
+                        "payload": "__PRIX",
+                        "image_url":"https://png.pngitem.com/pimgs/s/63-631808_png-light-effects-for-picsart-glow-yellow-transparent.png"
+                    },
+                    {
+                        "content_type": "text",
+                        "title": "COUVERTURE 🙃🙃",
+                        "payload": "__COUVERTURE",
+                        "image_url":"https://png.pngitem.com/pimgs/s/63-631808_png-light-effects-for-picsart-glow-yellow-transparent.png"
+                    }
+                ]
+
+            data_json = {
+                'messaging_type': "RESPONSE",
+                'recipient': {
+                    "id": dest_id
+                },
+
+                'message': {
+                    'text': text,
+                    'quick_replies': quick_rep
+                }
+            }
+
+            header = {'content-type': 'application/json; charset=utf-8'}
+            params = {"access_token": self.token}
+
+            return requests.post(
+                self.url + '/messages',
+                json=data_json,
+                headers=header,
+                params=params
+            )
+
 
     def send_template(self, destId, elements):
         '''
