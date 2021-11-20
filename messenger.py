@@ -1,8 +1,6 @@
 
 import requests
-from utils import translate
 from erreur import TestUserRequests
-
 
 class Messenger:
     def __init__(self, access_token):

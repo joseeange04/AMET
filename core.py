@@ -25,7 +25,7 @@ class Traitement:
         while i < len(self.photos):
             produits.append({
                 "title":str(self.photos[i][0]) + " - " + self.photos[i][1],
-                "image_url":self.photos[i][3],
+                "image_url":"https://amet.iteam-s.xyz/" + self.photos[i][3],
                 "subtitle":"Prix : " + str(self.photos[i][2]) + " Ar /heures",
                 "buttons":[ 
                     {
@@ -57,12 +57,12 @@ class Traitement:
         while j < len(self.all_gallerry):
             listeGallery.append({
                 "title":"image 😊😊😊",
-                "image_url":self.all_gallerry[j][0],
+                "image_url":"https://amet.iteam-s.xyz/" + self.all_gallerry[j][0],
                 "buttons":[ 
                     {
                         "type":"postback",
                         "title":"voir image",
-                        "payload": "__voirimage" + " " +  self.all_gallerry[j][0]
+                        "payload": "__voirimage" + " " +  "https://amet.iteam-s.xyz/" + self.all_gallerry[j][0]
                     } 
                 ]           
             })
@@ -72,7 +72,7 @@ class Traitement:
     
     def details(self,id_prod):
         self.photoDetails = req.get_detail(id_prod)
-        urlDetails = self.photoDetails[0][0]
+        urlDetails = "https://amet.iteam-s.xyz/" + self.photoDetails[0][0]
         return urlDetails   
 
 
@@ -123,8 +123,8 @@ class Traitement:
 
                     elif message['message'].get('attachments'):
                         if sender_id == sender_id_admin:
-                            print("attachment")
-                            return True
+                            url = message['message'].get('attachments')[0].get('payload').get('url')
+                            admin.executionAdmin(sender_id_admin,url) 
                         else:
                             print("attechments Clients")
                             return True
@@ -158,8 +158,9 @@ class Traitement:
 
     def traitement_action(self,sender_id,commande,action):
         print(commande)
-        print(action)
-        if action[0] == "DATE":
+        actionTrue= list(action[0])
+        print(actionTrue[0])
+        if actionTrue[0]== "DATE":
             self.daty = commande 
             verifTypeDate = self.daty.split("-")
             dateNow = str(date.today().strftime("%d-%m-%Y")).split("-")
@@ -233,7 +234,7 @@ class Traitement:
                     req.set_action(sender_id,None)
                     return True
 
-        elif action[0] == "HEURE_DEBUT":
+        elif actionTrue[0]== "HEURE_DEBUT":
             self.heure_debut = commande
             self.verifHeureDeDebut = self.heure_debut.split("h")
 
@@ -246,7 +247,7 @@ class Traitement:
             else:
                 if (int(self.verifHeureDeDebut[1]) == 0) or (int(self.verifHeureDeDebut[1]) == 30):
                     if self.exist:
-                        print("miditra ato zah zan!!")
+                        print("miditra ato zah zan, Date exist zan lec e!!")
                         a=0
                         b=0
                         self.verifIntervalleDebut = []
@@ -289,7 +290,7 @@ class Traitement:
                         return True
                     
                     else:
-                        print("tsy ao zah zan a")
+                        print("tsy ao zah zan , tsy miexist le date lec")
                         bot.send_message(sender_id,"Saisir votre Heure de fin en format HHhMM\n"+
                         "Exemple 12h00")
                         req.set_action(sender_id,"HEURE_FIN")
@@ -304,7 +305,7 @@ class Traitement:
                     return True
                     
                     
-        elif action[0] == "HEURE_FIN":
+        elif actionTrue[0]== "HEURE_FIN":
             self.heure_fin = commande
             self.verifHeureDeFin = self.heure_fin.split("h")
 
@@ -318,41 +319,55 @@ class Traitement:
             else:
 
                 if int(self.verifHeureDeFin[1]) == 0 or int(self.verifHeureDeFin[1]) == 30:
+                    #Ra toa ka efa misy an anat base le daty, zan we efa mis nanw
+                    #reservation t@nio daty io
                     if self.exist:
                         d=0
                         while d<len(self.verifIntervalleDebut):
-                            if int(self.verifIntervalleDebut[d])<=int(self.verifHeureDeFin[0])<int(self.verifIntervalleFin[d]):
+                            #De bouclena aloha mba anwvana verification sao dia ka tafalatsaka 
+                            #@na ora efa misy ilay ora napidirinlay user
+                            if int(self.verifIntervalleDebut[d])<int(self.verifHeureDeFin[0])<int(self.verifIntervalleFin[d]):
                                 bot.send_message(sender_id," Erreur intervalle1 FIN: Votre heure de FIN est tombé dans l'intervalle de temps des heures déjà"
                                 +"réservés\n\nDonc, Veuillez-vous saisir à nouveau et bien verifier votre heure\n\n"
                                 +"Merci 😊😊😊")
                                 return True
-                            elif int(self.verifHeureDeFin[0])==int(self.verifIntervalleDebut[d]):
+                            #verification ra mtov @heure debut ray n heure fin nampidiriny
+                            elif int(self.verifHeureDeFin[0])==int(self.verifIntervalleDebut[d]): 
+                                #verifena manarak ary we kely ve na mtov ninute anle heure fin napidirina koa
                                 if int(self.verifHeureDeFin[1])<=int(self.listeHeureDebutTraiter[d].split("h")[1]):
+                                    #Dia ra En zay rehetra zay a ka kely na mitovy @heure debut le heure fin de Erreur
+                                    #satria ts manaja marge
                                     if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
                                         bot.send_message(sender_id,"Erreur Marge Fin1: Votre heure de Fin est ivalide car selon la marge du commande"
                                         +", il est forcement plus d'une heure le commande\n\n"+
                                         "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
                                         return True
+                                    #fa ra tsy zay dia marina zan ka mety n heure  Fin-ay 
                                     else:   
                                         bot.send_message(sender_id,"Votre commande est bien récu pour la date "+
                                         self.daty+" de "+self.heure_debut+" à "+self.heure_fin)
                                         req.set_action(sender_id,None)
                                         self.heureFinDefinitive = self.verifHeureDeFin[0]+":"+self.verifHeureDeFin[1]+":00"
                                         print(self.heureFinDefinitive)
+                                        bot.send_quick_reply(sender_id,"confirmCmd")
+                                        req.set_action(sender_id,None)
                                         return True
                             else:
                                 pass 
                             d = d + 1
-
+                        #raha toa ka tsy tafalatsaka tao mits fa ora hafa mihitsy dia
+                        #atw ndray lo comparaison entre anaz sy le heureDebut elana @erreur marge
                         if self.verifHeureDeFin[0]<=self.verifHeureDeDebut[0]:
+                            #ra toa ka mitov na kel noho n heure debut n heure fin dia tsy mety
                             bot.send_message(sender_id,"Erreur Marge Fin2:Votre heure de Fin est ivalide car selon la marge du commande"
                             +", il est forcement plus de une heure le commande\n\n"+
                             "Alors veuillez-vous saisir à nouveau en respectant cette marge\n\nMerci😊😊😊")
                             return True
                         else:
+                            #fa ra tsia kousa dia
                             self.listeHeureDebutEtFin = self.verifIntervalleDebut + self.verifIntervalleFin
                             print(self.listeHeureDebutEtFin)
-                            for e in range(int(self.verifHeureDeDebut[0]),int(self.verifHeureDeFin[0])+1):
+                            for e in range(int(self.verifHeureDeDebut[0])+1,int(self.verifHeureDeFin[0])+1):
                                 for f in range (len(self.listeHeureDebutEtFin)):
                                     if e == int(self.listeHeureDebutEtFin[f]):
                                         print(int(self.listeHeureDebutEtFin[f]))
@@ -399,16 +414,20 @@ class Traitement:
                     return True
 
 
-        elif action[0] == "ATTENTE_REFERENCE":
+        elif actionTrue[0]== "ATTENTE_REFERENCE":
             #envoi de message à l'admin pour verification
             #condition regex de la reference
             #envoide de qrcode(id + time.time())
+            #confirmé tout d'abord le commande
+            req.setStatut(self.UniqueTime,'CONFIRMÉ')
             bot.send_message(sender_id,"Voici donc votre QRCODE qui est votre ticket d'entrée le jour où"
             +" vous serez au terrain\n\n Alors le gardé bien 😊😊😊")
-            dataQrCode = req.getElementQrcode(sender_id)
+            dataQrCode = list(req.getElementQrcode(self.UniqueTime)[0])
+            print(dataQrCode)
             img = qrcode.make(f"{dataQrCode[0]}_{dataQrCode[1]}")
             img.save(f"/opt/AMET/photo/{dataQrCode[0]}_{dataQrCode[1]}.png")
             bot.send_file_url(sender_id,f"https://amet.iteam-s.xyz/{dataQrCode[0]}_{dataQrCode[1]}.png","image")
+            req.set_action(sender_id,None)
             return True
             #update statut
             #req.set_action(sender_id,None)
@@ -463,9 +482,11 @@ class Traitement:
             return True
 
         elif commande == "__oui":
-            idUser = req.getIdUser(sender_id)
-            print(idUser)
-            # req.insertNouveauCommande(idUser,self.dateAlaTerrainFormater,self.heureDebutDefinitive,self.heureFinDefinitive,self.listeElementPayload[1],str(time.time()))
+
+            self.idUser = req.getIdUser(sender_id)
+            self.UniqueTime = str(time.time())
+            print(self.UniqueTime)
+            req.insertNouveauCommande(self.idUser,self.dateAlaTerrainFormater,self.heureDebutDefinitive,self.heureFinDefinitive,self.listeElementPayload[1],self.UniqueTime)
             bot.send_message(sender_id,"Votre commande a été bien enregistrer\n\nPour que nous pouvons"+
             " confirmer vraiment votre commande, on vous demande de payer une pétite avance du montant"+
             " 5000Ar et le reste de paymet aura lieu le jour où vous serez au terrain\n\n"+

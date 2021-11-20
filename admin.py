@@ -1,5 +1,6 @@
 import messenger
 from conf import ACCESS_TOKEN
+from utils import download_file
 import requete
 
 botAdmin= messenger.Messenger(ACCESS_TOKEN)
@@ -20,7 +21,7 @@ class Admin:
         while i < len(self.data):
             produits.append({
                 "title":str(self.data[i][0]) + " - " + self.data[i][1],
-                "image_url":self.data[i][4],
+                "image_url":"https://amet.iteam-s.xyz/" + self.data[i][4],
                 "subtitle":"Prix : " + str(self.data[i][3]) + " Ar /heures",
                 "buttons":[ 
                     {
@@ -98,6 +99,7 @@ class Admin:
         elif commande == "__delete":
             botAdmin.send_message(sender_id_admin,"Delete")
             return True
+        #elif verif commande
 
         #--------------------second QuickReply--------------------#
         elif commande == "__NOM":
@@ -120,7 +122,9 @@ class Admin:
             reqAdmin.set_action(sender_id_admin,"MODIFIER_COUVERTURE")
             return True
 
+    # def getUrlInsertOrUpdate(self,sender_id_admin,url):
         
+
     def executionAdmin(self,sender_id_admin,commande):
         
         reqAdmin.verifAdmin(sender_id_admin)

@@ -7,8 +7,12 @@ class Requete:
         '''
             Initialisation: Connexion à la base de données
         '''
+        self.__connect()
+
+    def __connect(self):
         self.db = mysql.connector.connect(**DATABASE)
         self.cursor = self.db.cursor()
+
 
     def verif_db(fonction):
         '''
@@ -18,7 +22,10 @@ class Requete:
         def trt_verif(*arg, **kwarg):
             if not arg[0].db.is_connected():
                 # reconnexion de la base
-                arg[0].db.reconnect()
+                try:
+                    arg[0].db.reconnect()
+                except Exception:
+                    arg[0].__connect()
             return fonction(*arg, **kwarg)
         return trt_verif
 
@@ -111,24 +118,34 @@ class Requete:
     def getIdUser(self,sender_id):
         req='SELECT id from utilisateur WHERE fb_id=%s'
         self.cursor.execute(req,(sender_id,))
-        return self.cursor.fetchall
+        return self.cursor.fetchone()[0]
 
     @verif_db
     def insertNouveauCommande(self,idUser,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode):
         req = """
-               INSERT INTO commande(id,date_cmd,dateAlaTerrain,heureDebutCmd,HeureFinCmd,id_prod,dataQrCode)
+               INSERT IGNORE INTO commande(id,date_cmd,dateAlaTerrain,heureDebutCmd,HeureFinCmd,id_prod,dataQrCode)
                VALUES(%s,NOW(),%s,%s,%s,%s,%s) 
             """
         self.cursor.execute(req,(idUser,dateAlaTerrain,heureDeDebut,heureDeFin,id_prod,dataQrCode))
         self.db.commit()
 
     @verif_db
-    def getElementQrcode(self,sender_id):
+    def setStatut(self,UniqueTime,value):
+        req = """
+                UPDATE commande SET statut = 'CONFIRMÉ' 
+                WHERE  dataQrCode= %s   
+        
+            """
+        self.cursor.execute(req,(UniqueTime,))
+        self.db.commit()
+
+    @verif_db
+    def getElementQrcode(self,UniqueTime):
         req = """
                 SELECT id_cmd,dataQrCode FROM commande
-                WHERE sender id = %s AND status = "CONFIRMÉ"
+                WHERE  dataQrCode=%s AND statut = 'CONFIRMÉ'
             """
-        self.cursor.execute(req,(sender_id,))
+        self.cursor.execute(req,(UniqueTime,))
         return self.cursor.fetchall()
 
 
